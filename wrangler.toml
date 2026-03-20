@@ -1,0 +1,9 @@
+name = "note-ocr-backend"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Set secrets via:
+# wrangler secret put GOOGLE_API_KEY
+# wrangler secret put TENCENT_SECRET_ID
+# wrangler secret put TENCENT_SECRET_KEY

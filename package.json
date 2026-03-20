@@ -1,0 +1,21 @@
+{
+  "name": "note-ocr-backend",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker proxy for Google Cloud Vision API",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.28.4"
+  },
+  "dependencies": {
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
+    "tencentcloud-sdk-nodejs-ocr": "^4.0.0"
+  }
+}

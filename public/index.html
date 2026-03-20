@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#007bff" />
+  <meta name="description" content="Convert handwritten notes to Markdown and Notion using Google Vision AI" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Note OCR" />
+
+  <title>AI Handwritten Note Assistant</title>
+
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:      #007bff;
+      --brand-dark: #0056b3;
+      --bg:         #f0f4f8;
+      --surface:    #ffffff;
+      --text:       #1e293b;
+      --muted:      #64748b;
+      --radius:     14px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Splash screen ── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: var(--brand);
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    #splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #splash .splash-icon {
+      width: 96px;
+      height: 96px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    #splash .splash-title {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      animation: fadeUp 0.5s 0.15s ease both;
+    }
+
+    #splash .splash-sub {
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      animation: fadeUp 0.5s 0.25s ease both;
+    }
+
+    #splash .splash-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite, fadeUp 0.5s 0.35s ease both;
+    }
+
+    @keyframes pop     { from { transform: scale(0.6); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+    @keyframes fadeUp  { from { transform: translateY(12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+    @keyframes spin    { to { transform: rotate(360deg) } }
+
+    /* ── App shell ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* Top bar */
+    .app-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px env(safe-area-inset-bottom, 0);
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,123,255,0.25);
+      flex-shrink: 0;
+    }
+
+    .app-bar .app-icon { font-size: 24px; }
+    .app-bar .app-title { font-size: 17px; font-weight: 700; flex: 1; }
+    .app-bar .app-badge {
+      font-size: 10px;
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main content area */
+    .app-content {
+      flex: 1;
+      overflow: auto;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Upload card */
+    .upload-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 2px dashed #cbd5e1;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .upload-card:hover {
+      border-color: var(--brand);
+      background: #eff6ff;
+    }
+
+    .upload-card .upload-icon { font-size: 40px; }
+    .upload-card .upload-label { font-size: 15px; font-weight: 600; color: var(--text); }
+    .upload-card .upload-sub   { font-size: 12px; color: var(--muted); }
+
+    /* Status card */
+    .status-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+    }
+
+    /* ── Camera ── */
+    .camera-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .camera-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .viewfinder {
+      position: absolute;
+      inset: 12px;
+      pointer-events: none;
+    }
+
+    .vf-corner {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-color: rgba(255,255,255,0.85);
+      border-style: solid;
+    }
+
+    .vf-corner.tl { top:0; left:0;   border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+    .vf-corner.tr { top:0; right:0;  border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+    .vf-corner.bl { bottom:0; left:0;  border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+    .vf-corner.br { bottom:0; right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.05s ease;
+    }
+    .flash-overlay.flash { opacity: 1; transition: opacity 0.35s ease; }
+
+    .camera-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .ctrl-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.08);
+      font-size: 22px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .ctrl-btn:hover { background: rgba(0,0,0,0.15); }
+
+    .capture-btn {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 4px solid var(--brand);
+      background: #fff;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s;
+      box-shadow: 0 4px 16px rgba(0,123,255,0.3);
+    }
+    .capture-btn:active { transform: scale(0.92); }
+
+    .capture-inner {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--brand);
+      transition: background 0.15s;
+    }
+    .capture-btn:active .capture-inner { background: var(--brand-dark); }
+
+    .preview-bar {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .preview-bar.hidden { display: none; }
+
+    .preview-thumb {
+      width: 64px; height: 64px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+
+    .preview-actions { display: flex; gap: 8px; flex: 1; }
+
+    .preview-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .preview-btn:hover { opacity: 0.85; }
+    .preview-btn.retake { background: #f1f5f9; color: var(--text); }
+    .preview-btn.use    { background: var(--brand); color: #fff; }
+
+    /* ── OCR panel ── */
+    .ocr-panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .ocr-file-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .ocr-file-label:hover { border-color: var(--brand); background: #eff6ff; }
+    .ocr-file-label input { display: none; }
+
+    .ocr-start-btn {
+      padding: 12px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .ocr-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ocr-start-btn:not(:disabled):hover { opacity: 0.88; }
+
+    .ocr-status {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+      line-height: 1.5;
+    }
+    .ocr-status.success { color: #16a34a; }
+    .ocr-status.error   { color: #dc2626; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid #e2e8f0;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 0;
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s;
+      border: none;
+      background: none;
+    }
+
+    .nav-item.active { color: var(--brand); }
+    .nav-item .nav-icon { font-size: 22px; }
+  </style>
+</head>
+<body>
+
+  <!-- Splash screen -->
+  <div id="splash">
+    <div class="splash-icon">✍️</div>
+    <div class="splash-title">Note OCR</div>
+    <div class="splash-sub">AI Handwritten Note Assistant</div>
+    <div class="splash-spinner"></div>
+  </div>
+
+  <!-- App shell -->
+  <div id="app">
+    <!-- Top bar -->
+    <header class="app-bar">
+      <span class="app-icon">✍️</span>
+      <span class="app-title">Note OCR</span>
+      <span class="app-badge">AI</span>
+    </header>
+
+    <!-- Content -->
+    <main class="app-content">
+
+      <!-- Camera view (shown when camera tab active) -->
+      <div id="cameraView" class="camera-view">
+        <div class="camera-container">
+          <video id="video" autoplay playsinline muted></video>
+          <!-- Viewfinder overlay -->
+          <div class="viewfinder">
+            <div class="vf-corner tl"></div>
+            <div class="vf-corner tr"></div>
+            <div class="vf-corner bl"></div>
+            <div class="vf-corner br"></div>
+          </div>
+          <!-- Flash effect -->
+          <div id="flashOverlay" class="flash-overlay"></div>
+        </div>
+
+        <!-- Camera controls -->
+        <div class="camera-controls">
+          <button class="ctrl-btn" id="switchCamBtn" title="Switch camera">🔄</button>
+          <button class="capture-btn" id="captureBtn">
+            <div class="capture-inner"></div>
+          </button>
+          <button class="ctrl-btn" id="galleryBtn" title="Upload from gallery">🖼️</button>
+        </div>
+
+        <!-- Preview after capture -->
+        <div id="previewBar" class="preview-bar hidden">
+          <img id="previewThumb" class="preview-thumb" alt="captured" />
+          <div class="preview-actions">
+            <button class="preview-btn retake" id="retakeBtn">↩ Retake</button>
+            <button class="preview-btn use" id="useBtn">✓ Use Photo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden canvas for frame capture -->
+      <canvas id="captureCanvas" style="display:none"></canvas>
+
+      <!-- Hidden file input for gallery upload -->
+      <input id="cameraFileInput" type="file" accept="image/*" style="display:none" />
+
+      <div class="status-card">
+        <div class="status-dot"></div>
+        <span>Service Worker active — app works offline</span>
+      </div>
+
+      <!-- OCR upload panel -->
+      <div class="ocr-panel">
+        <label class="ocr-file-label" for="fileInput">
+          <span id="ocrFileName">📁 选择图片或拍照后点击识别</span>
+          <input id="fileInput" type="file" accept="image/*" />
+        </label>
+        <button id="uploadBtn" class="ocr-start-btn" disabled>开始识别</button>
+        <div id="status" class="ocr-status"></div>
+      </div>
+    </main>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item active">
+        <span class="nav-icon">🏠</span>Scan
+      </button>
+      <button class="nav-item">
+        <span class="nav-icon">📝</span>Notes
+      </button>
+      <button class="nav-item">
+        <span class="nav-icon">⚙️</span>Settings
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // Hide splash after page is ready
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('splash').classList.add('hidden');
+      }, 1200);
+    });
+
+    // ── Camera logic ──────────────────────────────────────────────────────────
+    const video        = document.getElementById('video');
+    const canvas       = document.getElementById('captureCanvas');
+    const captureBtn   = document.getElementById('captureBtn');
+    const switchBtn    = document.getElementById('switchCamBtn');
+    const galleryBtn   = document.getElementById('galleryBtn');
+    const cameraFileInput = document.getElementById('cameraFileInput');
+    const previewBar   = document.getElementById('previewBar');
+    const previewThumb = document.getElementById('previewThumb');
+    const retakeBtn    = document.getElementById('retakeBtn');
+    const useBtn       = document.getElementById('useBtn');
+    const flash        = document.getElementById('flashOverlay');
+
+    let stream = null;
+    let facingMode = 'environment';
+    let capturedDataUrl = null;
+
+    async function startCamera(facing) {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1440 } },
+          audio: false,
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error('Camera error:', err);
+        document.querySelector('.camera-container').innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;flex-direction:column;gap:8px">' +
+          '<span style="font-size:32px">📷</span>Camera not available<br><small>Use the gallery button →</small></div>';
+      }
+    }
+
+    startCamera(facingMode);
+
+    switchBtn.addEventListener('click', () => {
+      facingMode = facingMode === 'environment' ? 'user' : 'environment';
+      startCamera(facingMode);
+    });
+
+    const JPEG_QUALITY = 0.7;
+
+    captureBtn.addEventListener('click', () => {
+      if (!stream) return;
+      const MAX_WIDTH = 1600;
+
+      // Flash effect
+      flash.classList.add('flash');
+      setTimeout(() => flash.classList.remove('flash'), 350);
+
+      // Source dimensions
+      const srcW = video.videoWidth  || 1280;
+      const srcH = video.videoHeight || 960;
+
+      // Scale down if wider than MAX_WIDTH
+      let dstW = srcW;
+      let dstH = srcH;
+      if (srcW > MAX_WIDTH) {
+        dstW = MAX_WIDTH;
+        dstH = Math.round(srcH * (MAX_WIDTH / srcW));
+      }
+
+      // Draw resized frame to canvas
+      canvas.width  = dstW;
+      canvas.height = dstH;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(video, 0, 0, srcW, srcH, 0, 0, dstW, dstH);
+
+      // Compress to JPEG 0.7
+      capturedDataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+
+      // Show size info in console
+      const kb = Math.round((capturedDataUrl.length * 3) / 4 / 1024);
+      console.log(`Captured: ${dstW}×${dstH}px, ~${kb}KB (quality ${JPEG_QUALITY})`);
+
+      // Display preview
+      previewThumb.src = capturedDataUrl;
+      previewBar.classList.remove('hidden');
+      captureBtn.disabled = true;
+    });
+
+    retakeBtn.addEventListener('click', () => {
+      previewBar.classList.add('hidden');
+      captureBtn.disabled = false;
+      capturedDataUrl = null;
+    });
+
+    useBtn.addEventListener('click', () => {
+      if (!capturedDataUrl) return;
+      window.dispatchEvent(new CustomEvent('ocr:image', { detail: { dataUrl: capturedDataUrl } }));
+      previewBar.classList.add('hidden');
+      captureBtn.disabled = false;
+    });
+
+    galleryBtn.addEventListener('click', () => cameraFileInput.click());
+    cameraFileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        capturedDataUrl = ev.target.result;
+        previewThumb.src = capturedDataUrl;
+        previewBar.classList.remove('hidden');
+        captureBtn.disabled = true;
+      };
+      reader.readAsDataURL(file);
+      cameraFileInput.value = '';
+    });
+
+    // ── OCR panel logic ───────────────────────────────────────────────────────
+    const ocrFileInput = document.getElementById('fileInput');
+    const ocrFileName  = document.getElementById('ocrFileName');
+    const ocrStartBtn  = document.getElementById('uploadBtn');
+    const ocrStatus    = document.getElementById('status');
+    const ocrCanvas    = document.createElement('canvas');
+
+    const MAX_WIDTH = 1280;
+    let ocrBase64 = null;
+
+    function compressImage(file, callback) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (w > MAX_WIDTH) { h = Math.round(h * MAX_WIDTH / w); w = MAX_WIDTH; }
+        ocrCanvas.width = w;
+        ocrCanvas.height = h;
+        const ctx = ocrCanvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        callback(ocrCanvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = url;
+    }
+
+    // File picker
+    ocrFileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      ocrStatus.className = 'ocr-status';
+      ocrStatus.textContent = '正在压缩...';
+      compressImage(file, (dataUrl) => {
+        ocrBase64 = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+        ocrFileName.textContent = `✅ ${file.name}`;
+        ocrStatus.textContent = `压缩完成，Base64 长度：${ocrBase64.length}`;
+        ocrStartBtn.disabled = false;
+      });
+    });
+
+    // Camera capture also feeds into OCR panel
+    window.addEventListener('ocr:image', (e) => {
+      ocrBase64 = e.detail.dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      ocrFileName.textContent = '✅ 拍照图片';
+      ocrStatus.textContent = `压缩完成，Base64 长度：${ocrBase64.length}`;
+      ocrStartBtn.disabled = false;
+    });
+
+    // Send to backend
+    ocrStartBtn.addEventListener('click', async () => {
+      if (!ocrBase64) return;
+      console.log('[OCR] sending base64 length:', ocrBase64.length);
+      ocrStartBtn.disabled = true;
+      ocrStatus.className = 'ocr-status';
+      ocrStatus.textContent = '正在识别...';
+
+      try {
+        const res = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: ocrBase64 }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          ocrStatus.className = 'ocr-status success';
+          ocrStatus.textContent = data.text ? `识别结果：\n${data.text}` : '识别成功，未检测到文字';
+        } else {
+          ocrStatus.className = 'ocr-status error';
+          ocrStatus.textContent = `错误：${data.error || res.statusText}`;
+        }
+      } catch (err) {
+        ocrStatus.className = 'ocr-status error';
+        ocrStatus.textContent = `请求失败：${err.message}`;
+      } finally {
+        ocrStartBtn.disabled = false;
+      }
+    });
+
+    // Service Worker registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => {
+            console.log('Service Worker Registered', reg.scope);
+            // Update status dot if SW is active
+            if (reg.active) {
+              document.querySelector('.status-dot').style.background = '#22c55e';
+            }
+          })
+          .catch((err) => {
+            console.error('Service Worker registration failed:', err);
+            document.querySelector('.status-dot').style.background = '#ef4444';
+          });
+      });
+    }
+  </script>
+</body>
+</html>
