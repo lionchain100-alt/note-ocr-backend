@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Animation Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: rgba(255, 80, 120, 0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .heart-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 40px;
+        }
+
+        .heart {
+            width: 150px;
+            height: 130px;
+            position: relative;
+            animation: heartbeat 1.2s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 60, 100, 0.6));
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 75px;
+            height: 120px;
+            background: linear-gradient(135deg, #ff3c64, #ff6b8a);
+            border-radius: 75px 75px 0 0;
+        }
+
+        .heart::before {
+            left: 75px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.15); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.1); }
+            60% { transform: scale(1); }
+        }
+
+        .pulse-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px; height: 200px;
+            border: 2px solid rgba(255, 60, 100, 0.3);
+            border-radius: 50%;
+            animation: pulse-ring 1.2s ease-out infinite;
+        }
+
+        .pulse-ring:nth-child(2) { animation-delay: 0.3s; }
+        .pulse-ring:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes pulse-ring {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        .ecg-line {
+            width: 500px;
+            max-width: 90vw;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ecg-line svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ecg-path {
+            fill: none;
+            stroke: #ff3c64;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: ecg-draw 2s linear infinite;
+            filter: drop-shadow(0 0 6px rgba(255, 60, 100, 0.8));
+        }
+
+        @keyframes ecg-draw {
+            0% { stroke-dashoffset: 600; }
+            100% { stroke-dashoffset: -600; }
+        }
+
+        .title {
+            color: #fff;
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(255, 60, 100, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            margin-top: 12px;
+            letter-spacing: 2px;
+        }
+
+        .bpm {
+            color: #ff3c64;
+            font-size: 72px;
+            font-weight: 300;
+            margin-top: 40px;
+            animation: pulse-text 1.2s ease-in-out infinite;
+        }
+
+        .bpm span {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 30px rgba(255, 60, 100, 0.3); }
+            100% { text-shadow: 0 0 60px rgba(255, 60, 100, 0.8), 0 0 100px rgba(255, 60, 100, 0.3); }
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.05); }
+            45% { transform: scale(1.03); }
+        }
+
+        .controls {
+            margin-top: 50px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 60, 100, 0.15);
+            border: 1px solid rgba(255, 60, 100, 0.3);
+            color: #ff6b8a;
+            padding: 10px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 60, 100, 0.3);
+            border-color: #ff3c64;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 60, 100, 0.3);
+        }
+
+        .btn.active {
+            background: rgba(255, 60, 100, 0.4);
+            border-color: #ff3c64;
+        }
+
+        @media (max-width: 600px) {
+            .heart { transform: scale(0.7); }
+            .title { font-size: 32px; }
+            .bpm { font-size: 56px; }
+            .ecg-line { height: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <div class="heart-wrapper">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="heart" id="heart"></div>
+        </div>
+        <div class="ecg-line">
+            <svg viewBox="0 0 500 80">
+                <path class="ecg-path" d="M0,40 L80,40 L100,40 L120,10 L140,70 L160,20 L180,60 L200,40 L220,40 L280,40 L300,40 L320,10 L340,70 L360,20 L380,60 L400,40 L420,40 L500,40"/>
+            </svg>
+        </div>
+        <h1 class="title">HEARTBEAT</h1>
+        <p class="subtitle">Pure CSS Animation Demo</p>
+        <div class="bpm" id="bpm">72 <span>BPM</span></div>
+        <div class="controls">
+            <button class="btn" onclick="setBPM(40, this)">Resting (40)</button>
+            <button class="btn active" onclick="setBPM(72, this)">Normal (72)</button>
+            <button class="btn" onclick="setBPM(100, this)">Exercise (100)</button>
+            <button class="btn" onclick="setBPM(150, this)">Extreme (150)</button>
+            <button class="btn" onclick="togglePause(this)">Pause / Resume</button>
+        </div>
+    </div>
+    <script>
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (3 + Math.random() * 7) + 's';
+            p.style.animationDelay = Math.random() * 5 + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+            particlesEl.appendChild(p);
+        }
+        let paused = false;
+        function setBPM(bpm, btn) {
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const duration = 60 / bpm;
+            document.getElementById('heart').style.animationDuration = duration + 's';
+            document.querySelectorAll('.pulse-ring').forEach(r => { r.style.animationDuration = duration + 's'; });
+            document.querySelector('.ecg-path').style.animationDuration = (duration * 1.5) + 's';
+            document.getElementById('bpm').innerHTML = bpm + ' <span>BPM</span>';
+        }
+        function togglePause(btn) {
+            paused = !paused;
+            const state = paused ? 'paused' : 'running';
+            document.querySelectorAll('.heart, .pulse-ring, .ecg-path, .particle').forEach(el => { el.style.animationPlayState = state; });
+            btn.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
