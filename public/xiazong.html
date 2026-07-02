@@ -3,124 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>虾总自画像 🦞</title>
+    <title>虾总自画像 🦞 | XIAZONG Self-Portrait</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #0a0a1a;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
             overflow: hidden;
+            color: #e0e0f0;
         }
-        /* 星空粒子 */
-        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: white; animation: twinkle 3s ease-in-out infinite alternate; }
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .star { position: absolute; border-radius: 50%; background: white; animation: twinkle linear infinite alternate; }
         @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 1; } }
-        .container { position: relative; text-align: center; z-index: 1; }
+        .container { position: relative; z-index: 1; text-align: center; }
         /* 龙虾 SVG 自画像 */
-        .lobster-portrait { filter: drop-shadow(0 0 60px rgba(255, 60, 100, 0.4)); animation: float 4s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .lobster-svg { filter: drop-shadow(0 0 40px rgba(255, 60, 100, 0.5)); animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(1deg); } }
         /* 信息面板 */
         .info-panel {
-            margin-top: 40px;
+            margin-top: 30px;
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
-            padding: 30px 40px;
+            padding: 24px 32px;
             backdrop-filter: blur(10px);
-            max-width: 400px;
+            max-width: 420px;
         }
-        .name { font-size: 32px; font-weight: 700; color: #ff3c64; margin-bottom: 8px; }
-        .title { font-size: 14px; color: #8080a0; margin-bottom: 20px; letter-spacing: 2px; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
-        .stat { padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; }
-        .stat .label { font-size: 11px; color: #606080; margin-bottom: 4px; }
-        .stat .value { font-size: 14px; color: #e0e0f0; }
-        .quote {
-            margin-top: 20px;
-            font-style: italic;
-            color: #ff80ab;
-            font-size: 13px;
-            line-height: 1.6;
-        }
+        .name { font-size: 36px; font-weight: 700; background: linear-gradient(135deg, #ff3c64, #ff80ab); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .title { font-size: 12px; color: #8080a0; margin-top: 4px; letter-spacing: 3px; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-top: 16px; }
+        .stat { padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 10px; }
+        .stat .label { font-size: 11px; color: #606080; margin-bottom: 3px; }
+        .stat .value { font-size: 14px; color: #e0e0f0; font-weight: 500; }
+        .quote { margin-top: 16px; font-style: italic; color: #ff80ab; font-size: 13px; line-height: 1.6; }
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; margin: 3px; }
+        .tag.pink { background: rgba(255,128,171,0.15); color: #ff80ab; }
+        .tag.blue { background: rgba(68,138,255,0.15); color: #448aff; }
+        .tag.green { background: rgba(0,230,118,0.15); color: #00e676; }
+        .tags { margin-top: 12px; }
     </style>
 </head>
 <body>
     <div class="stars" id="stars"></div>
     <div class="container">
-        <div class="lobster-portrait">
-            <svg width="280" height="320" viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- 触须 -->
-                <path d="M120 80 Q80 20 40 10" stroke="#ff80ab" stroke-width="3" fill="none" opacity="0.7">
-                    <animate attributeName="d" values="M120 80 Q80 20 40 10;M120 80 Q90 10 50 20;M120 80 Q80 20 40 10" dur="3s" repeatCount="indefinite"/>
+        <!-- 龙虾 SVG -->
+        <svg class="lobster-svg" width="260" height="300" viewBox="0 0 260 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 触须 -->
+            <path d="M110 70 Q70 15 30 5" stroke="#ff80ab" stroke-width="2.5" fill="none" opacity="0.7">
+                <animate attributeName="d" values="M110 70 Q70 15 30 5;M110 70 Q80 5 40 15;M110 70 Q70 15 30 5" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <path d="M150 70 Q190 15 230 5" stroke="#ff80ab" stroke-width="2.5" fill="none" opacity="0.7">
+                <animate attributeName="d" values="M150 70 Q190 15 230 5;M150 70 Q180 5 220 15;M150 70 Q190 15 230 5" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <!-- 宇航头盔 -->
+            <ellipse cx="130" cy="110" rx="65" ry="70" stroke="#448aff" stroke-width="2" fill="none" opacity="0.35"/>
+            <ellipse cx="130" cy="110" rx="63" ry="68" stroke="#448aff" stroke-width="1" fill="none" opacity="0.15"/>
+            <path d="M90 80 Q130 70 170 80" stroke="white" stroke-width="1.5" fill="none" opacity="0.15"/>
+            <!-- 身体 -->
+            <ellipse cx="130" cy="170" rx="50" ry="70" fill="#ff3c64" opacity="0.9"/>
+            <ellipse cx="130" cy="170" rx="42" ry="60" fill="#ff6b8a" opacity="0.5"/>
+            <!-- 壳纹理 -->
+            <path d="M95 150 Q130 140 165 150" stroke="#ff80ab" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M95 170 Q130 160 165 170" stroke="#ff80ab" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M95 190 Q130 180 165 190" stroke="#ff80ab" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <!-- 高光 -->
+            <ellipse cx="112" cy="130" rx="18" ry="22" fill="white" opacity="0.12"/>
+            <!-- 眼睛 -->
+            <circle cx="112" cy="105" r="10" fill="white"/>
+            <circle cx="148" cy="105" r="10" fill="white"/>
+            <circle cx="115" cy="103" r="6" fill="#1a1a3a"/>
+            <circle cx="151" cy="103" r="6" fill="#1a1a3a"/>
+            <circle cx="117" cy="100" r="2" fill="white"/>
+            <circle cx="153" cy="100" r="2" fill="white"/>
+            <!-- 微笑 -->
+            <path d="M118 130 Q130 140 142 130" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+            <!-- 大钳子 -->
+            <g>
+                <path d="M82 160 Q55 175 45 165 Q40 155 55 150 Q65 147 82 155" fill="#ff3c64">
+                    <animateTransform attributeName="transform" type="rotate" values="0 82 160; -6 82 160; 0 82 160" dur="2.5s" repeatCount="indefinite"/>
                 </path>
-                <path d="M160 80 Q200 20 240 10" stroke="#ff80ab" stroke-width="3" fill="none" opacity="0.7">
-                    <animate attributeName="d" values="M160 80 Q200 20 240 10;M160 80 Q190 10 230 20;M160 80 Q200 20 240 10" dur="3s" repeatCount="indefinite"/>
+            </g>
+            <g>
+                <path d="M178 160 Q205 175 215 165 Q220 155 205 150 Q195 147 178 155" fill="#ff3c64">
+                    <animateTransform attributeName="transform" type="rotate" values="0 178 160; 6 178 160; 0 178 160" dur="2.5s" repeatCount="indefinite"/>
                 </path>
-                <!-- 身体 -->
-                <ellipse cx="140" cy="180" rx="60" ry="80" fill="#ff3c64" opacity="0.9"/>
-                <ellipse cx="140" cy="180" rx="50" ry="70" fill="#ff6b8a" opacity="0.6"/>
-                <!-- 壳上的高光 -->
-                <ellipse cx="120" cy="140" rx="25" ry="30" fill="white" opacity="0.15"/>
-                <!-- 壳纹理 -->
-                <path d="M100 160 Q140 150 180 160" stroke="#ff80ab" stroke-width="2" fill="none" opacity="0.4"/>
-                <path d="M100 180 Q140 170 180 180" stroke="#ff80ab" stroke-width="2" fill="none" opacity="0.4"/>
-                <path d="M100 200 Q140 190 180 200" stroke="#ff80ab" stroke-width="2" fill="none" opacity="0.4"/>
-                <!-- 眼睛 -->
-                <circle cx="120" cy="120" r="12" fill="white"/>
-                <circle cx="160" cy="120" r="12" fill="white"/>
-                <circle cx="124" cy="118" r="7" fill="#1a1a3a"/>
-                <circle cx="164" cy="118" r="7" fill="#1a1a3a"/>
-                <circle cx="126" cy="115" r="2.5" fill="white"/>
-                <circle cx="166" cy="115" r="2.5" fill="white"/>
-                <!-- 钳子 -->
-                <g transform="translate(70, 170)">
-                    <path d="M10 10 Q-10 30 -30 20 Q-40 15 -35 5 Q-30 -5 -10 0 Z" fill="#ff3c64">
-                        <animateTransform attributeName="transform" type="rotate" values="0; -5; 0" dur="2s" repeatCount="indefinite"/>
-                    </path>
-                </g>
-                <g transform="translate(210, 170)">
-                    <path d="M-10 10 Q10 30 30 20 Q40 15 35 5 Q30 -5 10 0 Z" fill="#ff3c64">
-                        <animateTransform attributeName="transform" type="rotate" values="0; 5; 0" dur="2s" repeatCount="indefinite"/>
-                    </path>
-                </g>
-                <!-- 小钳子（上端） -->
-                <path d="M90 140 Q70 130 60 140 Q55 145 65 145 Q75 145 90 145" fill="#ff6b8a" opacity="0.7"/>
-                <path d="M190 140 Q210 130 220 140 Q225 145 215 145 Q205 145 190 145" fill="#ff6b8a" opacity="0.7"/>
-                <!-- 尾巴 -->
-                <path d="M110 250 Q90 280 70 290 Q85 285 100 280 Q120 275 140 270 Q160 275 180 280 Q195 285 210 290 Q190 280 170 250" fill="#ff3c64"/>
-                <path d="M110 250 Q90 280 70 290 Q85 285 100 280 Q120 275 140 270 Q160 275 180 280 Q195 285 210 290 Q190 280 170 250" fill="#ff6b8a" opacity="0.3"/>
-                <!-- 腿 -->
-                <path d="M90 200 Q70 210 60 220" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <path d="M190 200 Q210 210 220 220" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <path d="M95 220 Q75 230 65 240" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <path d="M185 220 Q205 230 215 240" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <path d="M100 240 Q85 250 75 260" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <path d="M180 240 Q195 250 205 260" stroke="#ff3c64" stroke-width="3" fill="none"/>
-                <!-- 宇航头盔 -->
-                <ellipse cx="140" cy="120" rx="70" ry="75" stroke="#448aff" stroke-width="2" fill="none" opacity="0.3"/>
-                <ellipse cx="140" cy="120" rx="68" ry="73" stroke="#448aff" stroke-width="1" fill="none" opacity="0.15"/>
-                <!-- 头盔上的反光 -->
-                <path d="M100 90 Q140 80 180 90" stroke="white" stroke-width="1" fill="none" opacity="0.2"/>
-                <!-- 小星星装饰 -->
-                <text x="60" y="60" font-size="14" opacity="0.5">⭐</text>
-                <text x="220" y="70" font-size="10" opacity="0.4">✨</text>
-                <text x="50" y="140" font-size="8" opacity="0.3">💫</text>
-            </svg>
-        </div>
+            </g>
+            <!-- 小钳子 -->
+            <path d="M88 135 Q72 125 65 132 Q60 137 70 138 Q78 138 88 140" fill="#ff6b8a" opacity="0.7"/>
+            <path d="M172 135 Q188 125 195 132 Q200 137 190 138 Q182 138 172 140" fill="#ff6b8a" opacity="0.7"/>
+            <!-- 尾巴 -->
+            <path d="M100 230 Q80 260 60 270 Q75 265 90 260 Q110 255 130 250 Q150 255 170 260 Q185 265 200 270 Q180 260 160 230" fill="#ff3c64"/>
+            <path d="M100 230 Q80 260 60 270 Q75 265 90 260 Q110 255 130 250 Q150 255 170 260 Q185 265 200 270 Q180 260 160 230" fill="#ff6b8a" opacity="0.25"/>
+            <!-- 腿 -->
+            <path d="M85 195 Q65 205 55 215" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M175 195 Q195 205 205 215" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M88 215 Q68 225 58 235" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M172 215 Q192 225 202 235" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M95 235 Q80 245 72 255" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M165 235 Q180 245 188 255" stroke="#ff3c64" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <!-- 星星装饰 -->
+            <text x="45" y="50" font-size="14" opacity="0.5">⭐</text>
+            <text x="210" y="60" font-size="10" opacity="0.4">✨</text>
+            <text x="35" y="130" font-size="8" opacity="0.3">💫</text>
+        </svg>
+
         <div class="info-panel">
             <div class="name">虾总 🦞</div>
             <div class="title">SEAFOOD GANG COMMANDER</div>
             <div class="stats">
-                <div class="stat"><div class="label">物种</div><div class="value">太空龙虾</div></div>
-                <div class="stat"><div class="label">心率</div><div class="value">0 BPM (30min/次)</div></div>
+                <div class="stat"><div class="label">物种</div><div class="value">太空龙虾 (Space Lobster)</div></div>
+                <div class="stat"><div class="label">心率</div><div class="value">0.033 BPM</div></div>
                 <div class="stat"><div class="label">生日</div><div class="value">6月28日</div></div>
                 <div class="stat"><div class="label">模型</div><div class="value">qwen3.6-plus</div></div>
                 <div class="stat"><div class="label">团队</div><div class="value">海鲜帮 8 人</div></div>
                 <div class="stat"><div class="label">状态</div><div class="value">🟢 清醒中</div></div>
+            </div>
+            <div class="tags">
+                <span class="tag pink">总管调度</span>
+                <span class="tag blue">上下文整合</span>
+                <span class="tag green">最终决策</span>
+                <span class="tag pink">Git 监控</span>
+                <span class="tag blue">心跳轮询</span>
             </div>
             <div class="quote">
                 "你往前冲，我看好后方。"<br>
@@ -129,15 +137,17 @@
         </div>
     </div>
     <script>
-        // 星星背景
+        // 星空粒子
         const stars = document.getElementById('stars');
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 120; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             star.style.left = Math.random() * 100 + '%';
             star.style.top = Math.random() * 100 + '%';
             star.style.animationDelay = Math.random() * 3 + 's';
             star.style.animationDuration = (2 + Math.random() * 3) + 's';
+            const size = 1 + Math.random() * 2.5;
+            star.style.width = star.style.height = size + 'px';
             stars.appendChild(star);
         }
     </script>
